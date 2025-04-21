@@ -6,7 +6,7 @@ metadata:
   labels:
     app: shyam
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: shyam
@@ -77,8 +77,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: shyam-deployment
-  minReplicas: 5
-  maxReplicas: 15
+  minReplicas: 1
+  maxReplicas: 3
   metrics:
   - type: Resource
     resource:
