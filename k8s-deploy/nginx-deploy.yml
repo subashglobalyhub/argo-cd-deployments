@@ -1,0 +1,101 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: subash-deployment
+  namespace: data-import
+  labels:
+    app: subash
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: subash
+  template:
+    metadata:
+      labels:
+        app: subash
+    spec:
+      containers:
+      - name: subash
+        image: nginx:1.14.2
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "200m"
+            memory: "256Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
+      affinity:
+        nodeAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - shyamv1
+          - weight: 50
+            preference:
+              matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                - local-server
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: subash-agentcis-svc
+  namespace: data-import
+  labels:
+    app: subash
+    managed-by: subash-chaudhary-team
+spec:
+  selector:
+    app: subash
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+  ipFamilyPolicy: SingleStack
+  ipFamilies: [IPv4]
+
+---
+# Horizontal Pod Autoscaler for subash
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: subash-hpa
+  namespace: data-import
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: subash-deployment
+  minReplicas: 1
+  maxReplicas: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 50
+  behavior:
+    scaleUp:
+      stabilizationWindowSeconds: 15
+      policies:
+      - type: Pods
+        value: 2
+        periodSeconds: 30
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Pods
+        value: 1
+        periodSeconds: 60
