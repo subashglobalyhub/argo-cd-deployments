@@ -6,7 +6,7 @@ metadata:
   labels:
     app: subash
 spec:
-  replicas: 5
+  replicas: 1
   selector:
     matchLabels:
       app: subash
@@ -77,8 +77,8 @@ spec:
     apiVersion: apps/v1
     kind: Deployment
     name: subash-deployment
-  minReplicas: 5
-  maxReplicas: 15
+  minReplicas: 1
+  maxReplicas: 5
   metrics:
   - type: Resource
     resource:
